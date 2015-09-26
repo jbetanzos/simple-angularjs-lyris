@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html ng-app="asiclient">
+	<head>
+		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-4" rol="main" style="float:none; margin: 0 auto;">
+					<form name="suppressionListStatusForm" ng-controller="APIController as asiapi" ng-submit="suppressionListStatusForm.$valid && asiapi.callSuppresionListStatus
+					()" novalidate>
+					  <div class="form-group">
+					    <label for="lblType">Type</label>
+					    <input type="type" ng-model="asiapi.request.type" ng-init="asiapi.request.type = 'suppression-list'" class="form-control" id="typeInput" placeholder="Type" required>
+					  </div>
+					  <div class="form-group">
+					    <label for="lblActivity">Activity</label>
+					    <input type="type" ng-model="asiapi.request.activity" ng-init="asiapi.request.activity = 'upload-status'" class="form-control" id="activityInput" placeholder="Activity" required>
+					  </div>
+					  <div class="form-group">
+					    <label for="lblSiteId">Site ID</label>
+					    <input type="type" ng-model="asiapi.request.siteid" class="form-control" id="siteidInput" placeholder="Site ID" required>
+						
+					    <label for="lblFarm">Farm</label>
+					    <input type="type" ng-model="asiapi.request.farm" class="form-control" id="farmInput" placeholder="Farm" required>
+						
+					    <label for="lblPassword">Password</label>
+					    <input type="password" ng-model="asiapi.request.password" class="form-control" id="passwordInput" placeholder="Password" required>
+						
+					    <label for="lblSID">SID</label>
+					    <input type="type" ng-model="asiapi.request.sid" class="form-control" id="sidInput" placeholder="SID" required>
+					  </div>
+					  <button type="submit" ng-hide="asiapi.waiting" class="btn btn-default">Send Request</button>
+					  <button type="submit" ng-show="asiapi.waiting" class="btn btn-default">Waiting
+  						  <span class="fa fa-spinner fa-pulse"></span>
+					  </button>
+					  
+					  <div class="form-group" style="margin-top: 10px;">
+					  	<div ng-repeat="message in asiapi.messages" ng-class="message.type" class="alert" role="alert">
+						  {{message.text}}
+						</div>
+					  </div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.6/angular.min.js"></script>
+		<script type="text/javascript">
+			(function(){
+				var app = angular.module('asiclient', []);
+				
+				app.controller('APIController',[ '$http', function($http){
+					this.request = {};
+					this.messages = [];
+					this.waiting = false;
+					
+					this.callSuppresionListStatus = function() {
+						var xmlRequest = "<DATASET><SITE_ID>" + this.request.siteid + "</SITE_ID><FARM>" + this.request.farm + "</FARM><PASSWORD>" + this.request.password + "</PASSWORD><DATA type=\"extra\" id=\"sid\">" + this.request.sid + "</DATA></DATASET>";
+						var ctrl = this;
+						var uri = 'https://api.services.lyris.com/API/mailing_list.html';
+						this.waiting = true;
+						
+						$http({
+							method: 'GET',
+							url : uri,
+							params : {
+								'type' : this.request.type,
+								'activity' : this.request.activity,
+								'input' : xmlRequest
+							}, 
+							headers: {
+								'Content-Type': 'application/xml; charset=utf-8'
+							}
+						}).success(function(data, status, headers, config){
+							ctrl.messages.push({ type: 'alert-success', text: data });
+							ctrl.waiting = false;
+						}).error(function(data, status, headers, config){
+							ctrl.messages.push({ type: 'alert-danger', text: data });
+							ctrl.waiting = false;
+						});
+						
+					};
+					
+					this.closeAlert = function(index) {
+						this.messages.splice(index, 1);
+					}
+				} ]);
+				
+			})();
+		</script>
+	</body>
+</html>
